@@ -10,6 +10,23 @@ import os
 __alpha = 1.0
 __beta = 1.0
 
+def plot( n_dz, liks, D, K ):
+    print "対数尤度：", liks[-1]
+    doc_dopics = numpy.argmax( n_dz , 1 )
+    print "分類結果：", doc_dopics
+    print "---------------------"
+
+
+    # グラフ表示
+    pylab.clf()
+    pylab.subplot("121")
+    pylab.title( "P(z|d)" )
+    pylab.imshow( n_dz / numpy.tile(numpy.sum(n_dz,1).reshape(D,1),(1,K)) , interpolation="none" )
+    pylab.subplot("122")
+    pylab.title( "liklihood" )
+    pylab.plot( range(len(liks)) , liks )
+    pylab.draw()
+    pylab.pause(0.1)
 
 def calc_lda_param( docs_mdn, topics_mdn, K, dims ):
     M = len(docs_mdn)
@@ -107,6 +124,7 @@ def load_model( load_dir ):
 # ldaメイン
 def mlda( data, K, num_itr=100, save_dir="model", load_dir=None ):
     pylab.ion()
+
     # 尤度のリスト
     liks = []
 
@@ -172,22 +190,7 @@ def mlda( data, K, num_itr=100, save_dir="model", load_dir=None ):
             if data[m] is not None:
                 lik += calc_liklihood( data[m], n_dz, n_mzw[m], n_mz[m], K, dims[m] )
         liks.append( lik )
-        print "対数尤度：", lik
-        doc_dopics = numpy.argmax( n_dz , 1 )
-        print "分類結果：", doc_dopics
-        print "---------------------"
-
-
-        # グラフ表示
-        pylab.clf()
-        pylab.subplot("121")
-        pylab.title( "P(z|d)" )
-        pylab.imshow( n_dz / numpy.tile(numpy.sum(n_dz,1).reshape(D,1),(1,K)) , interpolation="none" )
-        pylab.subplot("122")
-        pylab.title( "liklihood" )
-        pylab.plot( range(len(liks)) , liks )
-        pylab.draw()
-        pylab.pause(0.1)
+        plot( n_dz, liks, D, K )
 
     save_model( save_dir, n_dz, n_mzw, n_mz, M, dims )
 
@@ -198,7 +201,7 @@ def main():
     data = []
     data.append( numpy.loadtxt( "histogram_v.txt" , dtype=numpy.int32) )
     data.append( numpy.loadtxt( "histogram_w.txt" , dtype=numpy.int32)*5 )
-    #mlda( data, 3, 100 )
+    mlda( data, 3, 100, "learn_result" )
 
     data[1] = None
     mlda( data, 3, 10, "recog_result" , "learn_result" )
